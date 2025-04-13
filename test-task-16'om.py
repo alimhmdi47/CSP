@@ -36,11 +36,17 @@ class Product:
 class Box:
     def __init__(self,
                  box_type: str,
+                 length: int,
+                 width: int,
+                 height: int,
                  volume: int,
                  weight_capacity: int, number:int):
 
         self.box_type = box_type
-        self.volume = volume
+        self.length = length
+        self.width = width
+        self.height = height
+        self.volume = self.calculate_volume()
         self.weight_capacity = weight_capacity
         self.remaining_volume = volume
         self.remaining_weight = weight_capacity
@@ -48,7 +54,10 @@ class Box:
         self.contains_categories = set()
         self.contains_non_breakable = False
         self.number = number
-
+        
+    def calculate_volume(self) -> int:
+        return self.length * self.width * self.height
+    
     def can_fit(self, product):
         if (
             self.remaining_volume < product.volume
