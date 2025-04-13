@@ -32,15 +32,14 @@ class Product:
             f"Volume: {self.volume}, Weight: {self.weight}"
         )
 
-
 class Box:
     def __init__(self,
                  box_type: str,
                  length: int,
                  width: int,
                  height: int,
-                 volume: int,
-                 weight_capacity: int, number:int):
+                 weight_capacity: int,
+                 number:int):
 
         self.box_type = box_type
         self.length = length
@@ -48,7 +47,7 @@ class Box:
         self.height = height
         self.volume = self.calculate_volume()
         self.weight_capacity = weight_capacity
-        self.remaining_volume = volume
+        self.remaining_volume = self.volume
         self.remaining_weight = weight_capacity
         self.products = []
         self.contains_categories = set()
@@ -130,7 +129,7 @@ def pack_products(products, box_sizes):
                     box.volume >= product.volume
                     and box.weight_capacity >= product.weight
                 ):
-                    new_box = Box(box.box_type, box.volume, box.weight_capacity, box.number)
+                    new_box = Box(box.box_type, box.length , box.width , box.height, box.weight_capacity, box.number)
                     new_box.add_product(product)
                     boxes.append(new_box)
                     break
@@ -155,73 +154,6 @@ def modifid_boxes(packed_boxes):
     final_boxes = sorted(boxes, key=lambda x: x.number)
     return final_boxes
 
-
-class Product:
-    def __init__(
-        self,
-        name: str,
-        category: str,
-        length: int,
-        width: int,
-        height: int,
-        weight: float,
-        incompatible_with: list[str],
-        is_breakable: bool,
-    ):
-        self.name = name
-        self.category = category
-        self.length = length
-        self.width = width
-        self.height = height
-        self.volume = self.calculate_volume()
-        self.weight = weight
-        self.incompatible_with = incompatible_with
-        self.is_breakable = is_breakable
-
-    def calculate_volume(self) -> int:
-        return self.length * self.width * self.height
-
-    def __repr__(self) -> str:
-        return (
-            f"Product name: {self.name}, Category: {self.category}, "
-            f"Volume: {self.volume}, Weight: {self.weight}"
-        )
-
-
-class Box:
-    def __init__(
-        self,
-        box_type: str,
-        length: int,
-        width: int,
-        height: int,
-        weight_capacity: int,
-        number: int
-    ):
-        self.box_type = box_type
-        self.length = length
-        self.width = width
-        self.height = height
-        self.volume = self.calculate_volume()
-        self.weight_capacity = weight_capacity
-        self.remaining_volume = self.volume
-        self.remaining_weight = weight_capacity
-        self.products = []
-        self.contains_categories = set()
-        self.contains_non_breakable = False
-        self.number = number
-
-    def calculate_volume(self) -> int:
-        return self.length * self.width * self.height
-
-    def __repr__(self) -> str:
-        return (
-            f"Box type: {self.box_type}, Volume: {self.volume}, "
-            f"Weight capacity: {self.weight_capacity}, Products: {len(self.products)}"
-        )
-
-
-# Sample Products Base
 products_base = [
     # Electronics
     Product("Laptop", "Electronics", 30, 20, 2, 2.5, [], True),
