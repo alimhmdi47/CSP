@@ -156,69 +156,126 @@ def modifid_boxes(packed_boxes):
     return final_boxes
 
 
+class Product:
+    def __init__(
+        self,
+        name: str,
+        category: str,
+        length: int,
+        width: int,
+        height: int,
+        weight: float,
+        incompatible_with: list[str],
+        is_breakable: bool,
+    ):
+        self.name = name
+        self.category = category
+        self.length = length
+        self.width = width
+        self.height = height
+        self.volume = self.calculate_volume()
+        self.weight = weight
+        self.incompatible_with = incompatible_with
+        self.is_breakable = is_breakable
+
+    def calculate_volume(self) -> int:
+        return self.length * self.width * self.height
+
+    def __repr__(self) -> str:
+        return (
+            f"Product name: {self.name}, Category: {self.category}, "
+            f"Volume: {self.volume}, Weight: {self.weight}"
+        )
+
+
+class Box:
+    def __init__(
+        self,
+        box_type: str,
+        length: int,
+        width: int,
+        height: int,
+        weight_capacity: int,
+        number: int
+    ):
+        self.box_type = box_type
+        self.length = length
+        self.width = width
+        self.height = height
+        self.volume = self.calculate_volume()
+        self.weight_capacity = weight_capacity
+        self.remaining_volume = self.volume
+        self.remaining_weight = weight_capacity
+        self.products = []
+        self.contains_categories = set()
+        self.contains_non_breakable = False
+        self.number = number
+
+    def calculate_volume(self) -> int:
+        return self.length * self.width * self.height
+
+    def __repr__(self) -> str:
+        return (
+            f"Box type: {self.box_type}, Volume: {self.volume}, "
+            f"Weight capacity: {self.weight_capacity}, Products: {len(self.products)}"
+        )
+
+
+# Sample Products Base
 products_base = [
     # Electronics
-    Product("Laptop", "Electronics", 750, 2.5, [], True),
-    Product("Tablet", "Electronics", 600, 0.8, [], True),
-    Product("Bluetooth Speaker", "Electronics", 500, 1.0, [], True),
-    Product("Digital Camera", "Electronics", 400, 0.9, [], True),
-    Product("E-Reader", "Electronics", 350, 0.5, [], True),
-    Product("Smartwatch", "Electronics", 200, 0.3, [], True),
-    # Food
-    Product("Chocolate", "Food", 300, 0.2, [], False),
-    Product("Cheese", "Food", 500, 0.5, [], False),
-    Product("Olive Oil", "Food", 800, 1.0, [], True),
-    Product("Tomato Sauce", "Food", 700, 0.9, [], True),
-    Product("Pasta", "Food", 400, 0.4, [], False),
-    Product("Honey", "Food", 750, 1.2, [], True),
-    # Detergent
-    Product("Laundry Detergent", "Detergent", 1200, 2.0, [], False),
-    Product("Dish Soap", "Detergent", 900, 1.5, [], False),
-    Product("Bleach", "Detergent", 1000, 2.0, [], False),
-    Product("Glass Cleaner", "Detergent", 600, 1.0, [], False),
-    Product("Toilet Cleaner", "Detergent", 800, 1.7, [], False),
-    # Glassware
-    Product("Wine Glass", "Glassware", 400, 0.3, [], True),
-    Product("Glass Vase", "Glassware", 1500, 2.5, [], True),
-    Product("Mirror", "Glassware", 2000, 3.0, [], True),
-    Product("Glass Jar", "Glassware", 800, 1.0, [], True),
-    Product("Crystal Bowl", "Glassware", 1200, 1.8, [], True),
-    # Magnet
-    Product("Fridge Magnet", "Magnet", 100, 0.1, [], False),
-    Product("Industrial Magnet", "Magnet", 800, 5.0, [], False),
-    Product("Magnetic Toy", "Magnet", 300, 0.5, [], False),
-    Product("Magnet Strip", "Magnet", 400, 0.3, [], False),
-    Product("Magnetic Hooks", "Magnet", 350, 0.4, [], False),
-    # Over size and weight
-    Product("Over size", "Over", 10000, 5, [], False),
-    Product("Over weight", "Over", 500, 30, [], False),
-    # Incomapible with all
-    Product(
-        "All incompatible Not Breakalbe",
-        "Incomapatible",
-        500,
-        3,
-        ["Food", "Electronics", "Magnet", "Detergent"],
-        False,
-    ),
-    Product(
-        "All incompatible Breakable",
-        "Incomapatible",
-        500,
-        3,
-        ["Food", "Electronics", "Magnet", "Detergent"],
-        True,
-    ),
+    Product("Laptop", "Electronics", 30, 20, 2, 2.5, [], True),
+    Product("Tablet", "Electronics", 25, 18, 1, 0.8, [], True),
+    Product("Bluetooth Speaker", "Electronics", 20, 15, 2, 1.0, [], True),
+    Product("Digital Camera", "Electronics", 15, 10, 3, 0.9, [], True),
+    Product("E-Reader", "Electronics", 20, 12, 1, 0.5, [], True),
+    Product("Smartwatch", "Electronics", 10, 10, 2, 0.3, [], True),
 
+    # Food
+    Product("Chocolate", "Food", 15, 10, 2, 0.2, [], False),
+    Product("Cheese", "Food", 20, 15, 3, 0.5, [], False),
+    Product("Olive Oil", "Food", 30, 10, 10, 1.0, [], True),
+    Product("Tomato Sauce", "Food", 25, 10, 10, 0.9, [], True),
+    Product("Pasta", "Food", 20, 15, 5, 0.4, [], False),
+    Product("Honey", "Food", 25, 10, 10, 1.2, [], True),
+
+    # Detergent
+    Product("Laundry Detergent", "Detergent", 30, 20, 20, 2.0, [], False),
+    Product("Dish Soap", "Detergent", 25, 15, 15, 1.5, [], False),
+    Product("Bleach", "Detergent", 25, 15, 20, 2.0, [], False),
+    Product("Glass Cleaner", "Detergent", 20, 10, 10, 1.0, [], False),
+    Product("Toilet Cleaner", "Detergent", 25, 15, 15, 1.7, [], False),
+
+    # Glassware
+    Product("Wine Glass", "Glassware", 15, 15, 20, 0.3, [], True),
+    Product("Glass Vase", "Glassware", 30, 20, 30, 2.5, [], True),
+    Product("Mirror", "Glassware", 50, 40, 2, 3.0, [], True),
+    Product("Glass Jar", "Glassware", 20, 15, 20, 1.0, [], True),
+    Product("Crystal Bowl", "Glassware", 25, 25, 20, 1.8, [], True),
+
+    # Magnet
+    Product("Fridge Magnet", "Magnet", 5, 5, 2, 0.1, [], False),
+    Product("Industrial Magnet", "Magnet", 20, 20, 20, 5.0, [], False),
+    Product("Magnetic Toy", "Magnet", 15, 10, 5, 0.5, [], False),
+    Product("Magnet Strip", "Magnet", 20, 5, 2, 0.3, [], False),
+    Product("Magnetic Hooks", "Magnet", 15, 10, 3, 0.4, [], False),
+
+    # Oversize and overweight
+    Product("Over size", "Over", 100, 100, 100, 5.0, [], False),
+    Product("Over weight", "Over", 30, 30, 30, 30.0, [], False),
+
+    # Incompatible with all
+    Product("All incompatible Not Breakable", "Incompatible", 20, 20, 20, 3.0, ["Food", "Electronics", "Magnet", "Detergent"], False),
+    Product("All incompatible Breakable", "Incompatible", 20, 20, 20, 3.0, ["Food", "Electronics", "Magnet", "Detergent"], True),
 ]
 
 products = [choice(products_base) for _ in range(100)] 
 
 box_sizes = [
-    Box("XLarge Box", 7000, 15, 1),
-    Box("Large Box", 5000, 10, 2),
-    Box("Medium Box", 1500, 5, 3),
-    Box("Small Box", 1000, 2, 4),
+    Box("XLarge Box", 700, 700, 700, 15, 1),
+    Box("Large Box", 500, 500, 500, 10, 2),
+    Box("Medium Box", 300, 300, 300, 5, 3),
+    Box("Small Box", 200, 200, 200, 2, 4),
 ]
 
 constraint = {
