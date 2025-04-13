@@ -1,5 +1,6 @@
 from random import choice
 
+
 class Product:
     def __init__(
         self,
@@ -58,6 +59,9 @@ class Box:
         return self.length * self.width * self.height
     
     def can_fit(self, product):
+        if product.length >= self.length and product.width >= self.width and product.height >= self.height:
+            return False
+            
         if (
             self.remaining_volume < product.volume
             or self.remaining_weight < product.weight
@@ -97,7 +101,7 @@ class Box:
             f"{self.box_type} : {"Not Breakalbe" if self.contains_non_breakable else "Breakable"} | "
             f"Categories: {self.contains_categories} \n"
             f"Products: {product_names} \n"
-            f"Free Volume: {self.remaining_volume}, Free Weight: {self.remaining_weight} \n"
+            f"Free Volume: {self.remaining_volume}, Free Weight: {self.remaining_weight:.4f} \n"
             "----------"
     )
 
@@ -108,22 +112,86 @@ def set_constraint(products):
         products_with_constraint.append(product)
     return products_with_constraint
 
+# def pack_products(products, box_sizes):
+#     products = sorted(products, key=lambda x: (x.volume, x.weight, x.length, x.width, x.height), reverse=True)
+
+#     boxes = []
+#     remaining_products = []
+    
+#     for product in products:
+#         placed = False
+        
+#         for box in boxes:
+#             if box.can_fit(product):
+#                 box.add_product(product)
+#                 placed = True
+#                 break
+            
+#         if not placed:
+#             for box in box_sizes:
+#                 if (
+#                     box.volume >= product.volume
+#                     and box.weight_capacity >= product.weight
+#                 ):
+#                     new_box = Box(box.box_type, box.length , box.width , box.height, box.weight_capacity, box.number)
+#                     new_box.add_product(product)
+#                     boxes.append(new_box)
+#                     break
+                
+#                 else:
+#                     remaining_products.append(product)
+#                     break
+                
+#     return boxes, remaining_products
+
+def rotate_product(product):
+    rotations = [
+        (product.length, product.width, product.height),
+        (product.width, product.height, product.length),
+        (product.height, product.length, product.width),
+    ]
+    return rotations
+
+def can_fit_with_rotation(box, product):
+    for rotated_dimensions in rotate_product(product):
+        rotated_product = Product(
+            product.name, product.category, rotated_dimensions[0],
+            rotated_dimensions[1], rotated_dimensions[2], product.weight,
+            product.incompatible_with, product.is_breakable
+        )
+        if (
+            box.remaining_volume >= rotated_product.calculate_volume() and
+            box.remaining_weight >= rotated_product.weight and
+            box.can_fit(rotated_product)
+        ):
+            return rotated_product
+    return None
+
 def pack_products(products, box_sizes):
-    products = sorted(products, key=lambda x: (x.weight, x.volume), reverse=True)
+    products = sorted(products, key=lambda x: (x.volume, x.weight), reverse=True)
 
     boxes = []
     remaining_products = []
-    
+
     for product in products:
         placed = False
-        
+        best_box = None
+        best_product = None
+        best_fit_score = float('inf')
+
         for box in boxes:
-            if box.can_fit(product):
-                box.add_product(product)
-                placed = True
-                break
-            
-        if not placed:
+            rotated_product = can_fit_with_rotation(box, product)
+            if rotated_product:
+                fit_score = box.remaining_volume
+                if fit_score < best_fit_score:
+                    best_fit_score = fit_score
+                    best_box = box
+                    best_product = rotated_product
+                    placed = True
+
+        if best_box is not None and best_product is not None:
+            best_box.add_product(best_product)
+        else:
             for box in box_sizes:
                 if (
                     box.volume >= product.volume
@@ -133,12 +201,11 @@ def pack_products(products, box_sizes):
                     new_box.add_product(product)
                     boxes.append(new_box)
                     break
-                
-                else:
-                    remaining_products.append(product)
-                    break
-                
+            else:
+                remaining_products.append(product)
+
     return boxes, remaining_products
+
 
 def modifid_boxes(packed_boxes):
     boxes = []
@@ -193,7 +260,7 @@ products_base = [
     Product("Magnetic Hooks", "Magnet", 15, 10, 3, 0.4, [], False),
 
     # Oversize and overweight
-    Product("Over size", "Over", 100, 100, 100, 5.0, [], False),
+    Product("Over size", "Over", 800, 800, 800, 5.0, [], False),
     Product("Over weight", "Over", 30, 30, 30, 30.0, [], False),
 
     # Incompatible with all
