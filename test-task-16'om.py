@@ -5,7 +5,9 @@ class Product:
         self,
         name: str,
         category: str,
-        volume: int,
+        length: int,
+        width: int,
+        height: int,
         weight: float,
         incompatible_with: list[str],
         is_breakable: bool,
@@ -13,11 +15,17 @@ class Product:
 
         self.name = name
         self.category = category
-        self.volume = volume
+        self.length = length
+        self.width = width
+        self.height = height
+        self.volume = self.calculate_volume()
         self.weight = weight
         self.incompatible_with = incompatible_with
         self.is_breakable = is_breakable
 
+    def calculate_volume(self) -> int:
+        return self.length * self.width * self.height
+    
     def __repr__(self) -> str:
         return (
             f"Product name: {self.name}, Category: {self.category},"
@@ -26,7 +34,10 @@ class Product:
 
 
 class Box:
-    def __init__(self, box_type: str, volume: int, weight_capacity: int, number:int):
+    def __init__(self,
+                 box_type: str,
+                 volume: int,
+                 weight_capacity: int, number:int):
 
         self.box_type = box_type
         self.volume = volume
