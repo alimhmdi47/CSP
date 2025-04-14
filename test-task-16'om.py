@@ -112,43 +112,14 @@ def set_constraint(products):
         products_with_constraint.append(product)
     return products_with_constraint
 
-# def pack_products(products, box_sizes):
-#     products = sorted(products, key=lambda x: (x.volume, x.weight, x.length, x.width, x.height), reverse=True)
-
-#     boxes = []
-#     remaining_products = []
-    
-#     for product in products:
-#         placed = False
-        
-#         for box in boxes:
-#             if box.can_fit(product):
-#                 box.add_product(product)
-#                 placed = True
-#                 break
-            
-#         if not placed:
-#             for box in box_sizes:
-#                 if (
-#                     box.volume >= product.volume
-#                     and box.weight_capacity >= product.weight
-#                 ):
-#                     new_box = Box(box.box_type, box.length , box.width , box.height, box.weight_capacity, box.number)
-#                     new_box.add_product(product)
-#                     boxes.append(new_box)
-#                     break
-                
-#                 else:
-#                     remaining_products.append(product)
-#                     break
-                
-#     return boxes, remaining_products
-
 def rotate_product(product):
     rotations = [
         (product.length, product.width, product.height),
+        (product.length, product.height, product.width),
+        (product.width, product.length, product.height),
         (product.width, product.height, product.length),
         (product.height, product.length, product.width),
+        (product.height, product.width, product.length)
     ]
     return rotations
 
@@ -168,11 +139,12 @@ def can_fit_with_rotation(box, product):
     return None
 
 def pack_products(products, box_sizes):
-    products = sorted(products, key=lambda x: (x.volume, x.weight), reverse=True)
+    # products = sorted(products, key=lambda x: (x.volume, x.weight, x.length, x.width, x.height), reverse=True)
+    products = sorted(products, key=lambda x: (x.volume/x.weight), reverse=True)
 
     boxes = []
     remaining_products = []
-
+ 
     for product in products:
         placed = False
         best_box = None
@@ -203,9 +175,8 @@ def pack_products(products, box_sizes):
                     break
             else:
                 remaining_products.append(product)
-
+                    
     return boxes, remaining_products
-
 
 def modifid_boxes(packed_boxes):
     boxes = []
@@ -221,54 +192,106 @@ def modifid_boxes(packed_boxes):
     final_boxes = sorted(boxes, key=lambda x: x.number)
     return final_boxes
 
-products_base = [
-    # Electronics
-    Product("Laptop", "Electronics", 30, 20, 2, 2.5, [], True),
-    Product("Tablet", "Electronics", 25, 18, 1, 0.8, [], True),
+# products_base = [
+#     # Electronics
+#     Product("Laptop", "Electronics", 30, 20, 2, 2.5, [], True),
+#     Product("Tablet", "Electronics", 25, 18, 1, 0.8, [], True),
+#     Product("Bluetooth Speaker", "Electronics", 20, 15, 2, 1.0, [], True),
+#     Product("Digital Camera", "Electronics", 15, 10, 3, 0.9, [], True),
+#     Product("E-Reader", "Electronics", 20, 12, 1, 0.5, [], True),
+#     Product("Smartwatch", "Electronics", 10, 10, 2, 0.3, [], True),
+
+#     # Food
+#     Product("Chocolate", "Food", 15, 10, 2, 0.2, [], False),
+#     Product("Cheese", "Food", 20, 15, 3, 0.5, [], False),
+#     Product("Olive Oil", "Food", 30, 10, 10, 1.0, [], True),
+#     Product("Tomato Sauce", "Food", 25, 10, 10, 0.9, [], True),
+#     Product("Pasta", "Food", 20, 15, 5, 0.4, [], False),
+#     Product("Honey", "Food", 25, 10, 10, 1.2, [], True),
+
+#     # Detergent
+#     Product("Laundry Detergent", "Detergent", 30, 20, 20, 2.0, [], False),
+#     Product("Dish Soap", "Detergent", 25, 15, 15, 1.5, [], False),
+#     Product("Bleach", "Detergent", 25, 15, 20, 2.0, [], False),
+#     Product("Glass Cleaner", "Detergent", 20, 10, 10, 1.0, [], False),
+#     Product("Toilet Cleaner", "Detergent", 25, 15, 15, 1.7, [], False),
+
+#     # Glassware
+#     Product("Wine Glass", "Glassware", 15, 15, 20, 0.3, [], True),
+#     Product("Glass Vase", "Glassware", 30, 20, 30, 2.5, [], True),
+#     Product("Mirror", "Glassware", 50, 40, 2, 3.0, [], True),
+#     Product("Glass Jar", "Glassware", 20, 15, 20, 1.0, [], True),
+#     Product("Crystal Bowl", "Glassware", 25, 25, 20, 1.8, [], True),
+
+#     # Magnet
+#     Product("Fridge Magnet", "Magnet", 5, 5, 2, 0.1, [], False),
+#     Product("Industrial Magnet", "Magnet", 20, 20, 20, 5.0, [], False),
+#     Product("Magnetic Toy", "Magnet", 15, 10, 5, 0.5, [], False),
+#     Product("Magnet Strip", "Magnet", 20, 5, 2, 0.3, [], False),
+#     Product("Magnetic Hooks", "Magnet", 15, 10, 3, 0.4, [], False),
+
+#     # Oversize and overweight
+#     Product("Over size", "Over", 800, 800, 800, 5.0, [], False),
+#     Product("Over weight", "Over", 30, 30, 30, 30.0, [], False),
+
+#     # Incompatible with all
+#     Product("All incompatible Not Breakable", "Incompatible", 20, 20, 20, 3.0, ["Food", "Electronics", "Magnet", "Detergent"], False),
+#     Product("All incompatible Breakable", "Incompatible", 20, 20, 20, 3.0, ["Food", "Electronics", "Magnet", "Detergent"], True),
+# ]
+# products = [choice(products_base) for _ in range(20)] 
+
+products = [
+    Product("Fridge Magnet", "Magnet", 5, 5, 2, 0.1, [], False),
     Product("Bluetooth Speaker", "Electronics", 20, 15, 2, 1.0, [], True),
-    Product("Digital Camera", "Electronics", 15, 10, 3, 0.9, [], True),
-    Product("E-Reader", "Electronics", 20, 12, 1, 0.5, [], True),
-    Product("Smartwatch", "Electronics", 10, 10, 2, 0.3, [], True),
-
-    # Food
-    Product("Chocolate", "Food", 15, 10, 2, 0.2, [], False),
-    Product("Cheese", "Food", 20, 15, 3, 0.5, [], False),
-    Product("Olive Oil", "Food", 30, 10, 10, 1.0, [], True),
-    Product("Tomato Sauce", "Food", 25, 10, 10, 0.9, [], True),
-    Product("Pasta", "Food", 20, 15, 5, 0.4, [], False),
-    Product("Honey", "Food", 25, 10, 10, 1.2, [], True),
-
-    # Detergent
-    Product("Laundry Detergent", "Detergent", 30, 20, 20, 2.0, [], False),
-    Product("Dish Soap", "Detergent", 25, 15, 15, 1.5, [], False),
-    Product("Bleach", "Detergent", 25, 15, 20, 2.0, [], False),
-    Product("Glass Cleaner", "Detergent", 20, 10, 10, 1.0, [], False),
+    Product("Tablet", "Electronics", 25, 18, 1, 0.8, [], True),
     Product("Toilet Cleaner", "Detergent", 25, 15, 15, 1.7, [], False),
-
-    # Glassware
-    Product("Wine Glass", "Glassware", 15, 15, 20, 0.3, [], True),
+    Product("Toilet Cleaner", "Detergent", 25, 15, 15, 1.7, [], False),
+    Product("Digital Camera", "Electronics", 15, 10, 3, 0.9, [], True),
+    Product("Smartwatch", "Electronics", 10, 10, 2, 0.3, [], True),
+    Product("Tomato Sauce", "Food", 25, 10, 10, 0.9, [], True),
+    Product("Chocolate", "Food", 15, 10, 2, 0.2, [], False),
+    Product("Industrial Magnet", "Magnet", 20, 20, 20, 5.0, [], False),
+    Product("Toilet Cleaner", "Detergent", 25, 15, 15, 1.7, [], False),
+    Product("E-Reader", "Electronics", 20, 12, 1, 0.5, [], True),
+    Product("Industrial Magnet", "Magnet", 20, 20, 20, 5.0, [], False),
+    Product("Cheese", "Food", 20, 15, 3, 0.5, [], False),
+    Product("Magnetic Toy", "Magnet", 15, 10, 5, 0.5, [], False),
+    Product("Laptop", "Electronics", 30, 20, 2, 2.5, [], True),
+    Product("Bluetooth Speaker", "Electronics", 20, 15, 2, 1.0, [], True),
+    Product("Crystal Bowl", "Glassware", 25, 25, 20, 1.8, [], True),
+    Product("Laundry Detergent", "Detergent", 30, 20, 20, 2.0, [], False),
+    Product("Crystal Bowl", "Glassware", 25, 25, 20, 1.8, [], True),
+    Product("All incompatible Not Breakable", "Incompatible", 20, 20, 20, 3.0, ["Food", "Electronics", "Magnet", "Detergent"], False),
+    Product("Chocolate", "Food", 15, 10, 2, 0.2, [], False),
+    Product("E-Reader", "Electronics", 20, 12, 1, 0.5, [], True),
+    Product("Fridge Magnet", "Magnet", 5, 5, 2, 0.1, [], False),
+    Product("Over size", "Over", 800, 800, 800, 5.0, [], False),
+    Product("Digital Camera", "Electronics", 15, 10, 3, 0.9, [], True),
+    Product("Laundry Detergent", "Detergent", 30, 20, 20, 2.0, [], False),
+    Product("Chocolate", "Food", 15, 10, 2, 0.2, [], False),
+    Product("Pasta", "Food", 20, 15, 5, 0.4, [], False),
+    Product("Mirror", "Glassware", 50, 40, 2, 3.0, [], True),
+    Product("Honey", "Food", 25, 10, 10, 1.2, [], True),
+    Product("Tomato Sauce", "Food", 25, 10, 10, 0.9, [], True),
+    Product("Laptop", "Electronics", 30, 20, 2, 2.5, [], True),
+    Product("Toilet Cleaner", "Detergent", 25, 15, 15, 1.7, [], False),
+    Product("Magnetic Hooks", "Magnet", 15, 10, 3, 0.4, [], False),
+    Product("Olive Oil", "Food", 30, 10, 10, 1.0, [], True),
+    Product("Digital Camera", "Electronics", 15, 10, 3, 0.9, [], True),
+    Product("Tomato Sauce", "Food", 25, 10, 10, 0.9, [], True),
+    Product("Over size", "Over", 800, 800, 800, 5.0, [], False),
+    Product("All incompatible Breakable", "Incompatible", 20, 20, 20, 3.0, ["Food", "Electronics", "Magnet", "Detergent"], True),
+    Product("All incompatible Breakable", "Incompatible", 20, 20, 20, 3.0, ["Food", "Electronics", "Magnet", "Detergent"], True),
+    Product("Magnet Strip", "Magnet", 20, 5, 2, 0.3, [], False),
     Product("Glass Vase", "Glassware", 30, 20, 30, 2.5, [], True),
     Product("Mirror", "Glassware", 50, 40, 2, 3.0, [], True),
-    Product("Glass Jar", "Glassware", 20, 15, 20, 1.0, [], True),
-    Product("Crystal Bowl", "Glassware", 25, 25, 20, 1.8, [], True),
-
-    # Magnet
-    Product("Fridge Magnet", "Magnet", 5, 5, 2, 0.1, [], False),
-    Product("Industrial Magnet", "Magnet", 20, 20, 20, 5.0, [], False),
-    Product("Magnetic Toy", "Magnet", 15, 10, 5, 0.5, [], False),
-    Product("Magnet Strip", "Magnet", 20, 5, 2, 0.3, [], False),
-    Product("Magnetic Hooks", "Magnet", 15, 10, 3, 0.4, [], False),
-
-    # Oversize and overweight
-    Product("Over size", "Over", 800, 800, 800, 5.0, [], False),
-    Product("Over weight", "Over", 30, 30, 30, 30.0, [], False),
-
-    # Incompatible with all
-    Product("All incompatible Not Breakable", "Incompatible", 20, 20, 20, 3.0, ["Food", "Electronics", "Magnet", "Detergent"], False),
     Product("All incompatible Breakable", "Incompatible", 20, 20, 20, 3.0, ["Food", "Electronics", "Magnet", "Detergent"], True),
+    Product("Magnetic Hooks", "Magnet", 15, 10, 3, 0.4, [], False),
+    Product("Honey", "Food", 25, 10, 10, 1.2, [], True),
+    Product("Smartwatch", "Electronics", 10, 10, 2, 0.3, [], True),
+    Product("Honey", "Food", 25, 10, 10, 1.2, [], True),
+    Product("Olive Oil", "Food", 30, 10, 10, 1.0, [], True),
 ]
-
-products = [choice(products_base) for _ in range(100)] 
 
 box_sizes = [
     Box("XLarge Box", 700, 700, 700, 15, 1),
@@ -289,7 +312,7 @@ products = set_constraint(products)
 packed_boxes, remaining_product = pack_products(products, box_sizes)
 all_boxes = modifid_boxes(packed_boxes)
 
-print("#########")
+print("#########")    
 print("-- Boxes:")
 
 for i, box in enumerate(all_boxes):
