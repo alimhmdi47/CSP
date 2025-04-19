@@ -38,9 +38,6 @@ class Box:
         self.priority = priority
 
     def can_fit(self, product):
-        if product.length >= self.length and product.width >= self.width and product.height >= self.height:
-            return False
-            
         if (
             self.remaining_volume < product.volume
             or self.remaining_weight < product.weight
