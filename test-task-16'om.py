@@ -1,3 +1,4 @@
+from itertools import permutations
 from random import choice
 from typing import List
 
@@ -138,10 +139,34 @@ class BinPack():
     def __init__(self,box:Box,products:List[Product]):
         self.box = box
         self.products = products
-    
-    def pack(self):
-        return True
+        self.placement = []
+        self.unplaced = []
+        self.current_weight = 0
         
+    def rotations(self,product:Product):
+      return list(set(permutations(product.dimensions, 3)))
+    def can_place(self, x, y, z, dim, weight) -> bool:
+        if self.current_weight + weight > self.box.max_weight:
+            return False
+        if (x + dim[0] > self.box.dimensions[0] or
+            y + dim[1] > self.box.dimensions[1] or
+            z + dim[2] > self.box.dimensions[2]):
+            return False
+        return True
+    def pack(self):
+        self.unplaced.clear()
+        items_sorted = sorted(self.products, key=lambda it: it.volume, reverse=True)
+        for item in items_sorted:
+            placed = False
+            for rot in self.rotations(item):
+                if self.can_place(0,0,0, rot, item.weight):
+                    self.placement.append((item))
+                    self.current_weight += item.weight
+                    placed = True
+                    break
+            if not placed:
+                self.unplaced.append(item)
+    
 products = [
     Product("Fridge Magnet", "Magnet", 5, 5, 2, 0.1, [], False),
     Product("Over weight", "Over", 30, 30, 30, 500, [], False),
