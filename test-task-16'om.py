@@ -74,10 +74,10 @@ class Box:
     def __repr__(self):
         product_names = [product.name for product in self.products]
         return (
-            f"{self.box_type} : {"Not Breakalbe" if self.contains_non_breakable else "Breakable"} | "
+            f"{self.name} : {"Not Breakalbe" if self.contains_non_breakable else "Breakable"} | "
             f"Categories: {self.contains_categories} \n"
             f"Products: {product_names} \n"
-            f"Free Volume: {self.remaining_volume}, Free Weight: {self.remaining_weight:.4f} \n"
+            f"Free Volume: {self.remaining_volume}, Free Weight: {self.remaining_weight} \n"
             "----------"
     )
 
