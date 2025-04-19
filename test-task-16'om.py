@@ -88,32 +88,6 @@ def set_constraint(products):
         products_with_constraint.append(product)
     return products_with_constraint
 
-def rotate_product(product):
-    rotations = [
-        (product.length, product.width, product.height),
-        (product.length, product.height, product.width),
-        (product.width, product.length, product.height),
-        (product.width, product.height, product.length),
-        (product.height, product.length, product.width),
-        (product.height, product.width, product.length)
-    ]
-    return rotations
-
-def can_fit_with_rotation(box, product):
-    for rotated_dimensions in rotate_product(product):
-        rotated_product = Product(
-            product.name, product.category, rotated_dimensions[0],
-            rotated_dimensions[1], rotated_dimensions[2], product.weight,
-            product.incompatible_with, product.is_breakable
-        )
-        if (
-            box.remaining_volume >= rotated_product.calculate_volume() and
-            box.remaining_weight >= rotated_product.weight and
-            box.can_fit(rotated_product)
-        ):
-            return rotated_product
-    return None
-
 def pack_products(products, box_sizes):
     # products = sorted(products, key=lambda x: (x.volume, x.weight, x.length, x.width, x.height), reverse=True)
     products = sorted(products, key=lambda x: (x.volume/x.weight), reverse=True)
