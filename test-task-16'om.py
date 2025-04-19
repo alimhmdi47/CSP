@@ -82,59 +82,6 @@ class Box:
             "----------"
     )
 
-def set_constraint(products):
-    products_with_constraint = []
-    for product in products:
-        product.incompatible_with = constraint.get(product.category , product.incompatible_with)
-        products_with_constraint.append(product)
-    return products_with_constraint
-
-def pack_products(products, box_sizes):
-    products = sorted(products, key=lambda x: (x.weight, x.volume), reverse=True)
-
-    boxes = []
-    remaining_products = []
-    
-    for product in products:
-        placed = False
-        
-        for box in boxes:
-            if box.can_fit(product):
-                box.add_product(product)
-                placed = True
-                break
-            
-        if not placed:
-            for box in box_sizes:
-                if (
-                    box.volume >= product.volume
-                    and box.max_weight >= product.weight
-                ):
-                    new_box = Box(box.name, box.length, box.width , box.height , box.max_weight , box.priority)
-                    new_box.add_product(product)
-                    boxes.append(new_box)
-                    break
-                
-                else:
-                    remaining_products.append(product)
-                    break
-                
-    return boxes, remaining_products
-
-def modifid_boxes(packed_boxes):
-    boxes = []
-    for box in packed_boxes:
-        for box_type in box_sizes[1:]:
-            if (box.volume - box.remaining_volume) <= box_type.volume and (
-                box.max_weight - box.remaining_weight
-            ) <= box_type.max_weight:
-
-                box.name = box_type.name
-        boxes.append(box)
-
-    final_boxes = sorted(boxes, key=lambda x: x.priority)
-    return final_boxes
-
 class BinPack():
     def __init__(self,box:Box,products:List[Product]):
         self.box = box
@@ -206,6 +153,59 @@ class BinPack():
             if not placed:
                 self.unplaced.append(item)
     
+def set_constraint(products):
+    products_with_constraint = []
+    for product in products:
+        product.incompatible_with = constraint.get(product.category , product.incompatible_with)
+        products_with_constraint.append(product)
+    return products_with_constraint
+
+def pack_products(products, box_sizes):
+    products = sorted(products, key=lambda x: (x.weight, x.volume), reverse=True)
+
+    boxes = []
+    remaining_products = []
+    
+    for product in products:
+        placed = False
+        
+        for box in boxes:
+            if box.can_fit(product):
+                box.add_product(product)
+                placed = True
+                break
+            
+        if not placed:
+            for box in box_sizes:
+                if (
+                    box.volume >= product.volume
+                    and box.max_weight >= product.weight
+                ):
+                    new_box = Box(box.name, box.length, box.width , box.height , box.max_weight , box.priority)
+                    new_box.add_product(product)
+                    boxes.append(new_box)
+                    break
+                
+                else:
+                    remaining_products.append(product)
+                    break
+                
+    return boxes, remaining_products
+
+def modifid_boxes(packed_boxes):
+    boxes = []
+    for box in packed_boxes:
+        for box_type in box_sizes[1:]:
+            if (box.volume - box.remaining_volume) <= box_type.volume and (
+                box.max_weight - box.remaining_weight
+            ) <= box_type.max_weight:
+
+                box.name = box_type.name
+        boxes.append(box)
+
+    final_boxes = sorted(boxes, key=lambda x: x.priority)
+    return final_boxes
+
 products = [
     Product("Fridge Magnet", "Magnet", 5, 5, 2, 0.1, [], False),
     Product("Over weight", "Over", 30, 30, 30, 500, [], False),
@@ -292,3 +292,6 @@ for i, product in enumerate(remaining_product):
 for box in all_boxes:
     packer = BinPack(box, box.products)
     packer.pack()
+    print(f"placed items:  {packer.placement}")
+    print(f"unplaced items:  {[i.name for i in packer.unplaced]}")
+
