@@ -22,30 +22,21 @@ class Product:
         )
 
 class Box:
-    def __init__(self,
-                 box_type: str,
-                 length: int,
-                 width: int,
-                 height: int,
-                 weight_capacity: int,
-                 number:int):
-
-        self.box_type = box_type
+    def __init__(self, name: str, length: int, width: int, height: int, max_weight: float, priority: int):
+        self.name = name
         self.length = length
-        self.width = width
+        self.width = width 
         self.height = height
-        self.volume = self.calculate_volume()
-        self.weight_capacity = weight_capacity
+        self.dimensions = sorted((length, width, height))  # Sort dimensions (smallest to largest)
+        self.volume = length * width * height
         self.remaining_volume = self.volume
-        self.remaining_weight = weight_capacity
-        self.products = []
+        self.max_weight = max_weight
+        self.remaining_weight = max_weight
+        self.products: List[Product] = []
         self.contains_categories = set()
         self.contains_non_breakable = False
-        self.number = number
-        
-    def calculate_volume(self) -> int:
-        return self.length * self.width * self.height
-    
+        self.priority = priority
+
     def can_fit(self, product):
         if product.length >= self.length and product.width >= self.width and product.height >= self.height:
             return False
