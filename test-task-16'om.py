@@ -89,43 +89,35 @@ def set_constraint(products):
     return products_with_constraint
 
 def pack_products(products, box_sizes):
-    # products = sorted(products, key=lambda x: (x.volume, x.weight, x.length, x.width, x.height), reverse=True)
-    products = sorted(products, key=lambda x: (x.volume/x.weight), reverse=True)
+    products = sorted(products, key=lambda x: (x.weight, x.volume), reverse=True)
 
     boxes = []
     remaining_products = []
- 
+    
     for product in products:
         placed = False
-        best_box = None
-        best_product = None
-        best_fit_score = float('inf')
-
+        
         for box in boxes:
-            rotated_product = can_fit_with_rotation(box, product)
-            if rotated_product:
-                fit_score = box.remaining_volume
-                if fit_score < best_fit_score:
-                    best_fit_score = fit_score
-                    best_box = box
-                    best_product = rotated_product
-                    placed = True
-
-        if best_box is not None and best_product is not None:
-            best_box.add_product(best_product)
-        else:
+            if box.can_fit(product):
+                box.add_product(product)
+                placed = True
+                break
+            
+        if not placed:
             for box in box_sizes:
                 if (
                     box.volume >= product.volume
-                    and box.weight_capacity >= product.weight
+                    and box.max_weight >= product.weight
                 ):
-                    new_box = Box(box.box_type, box.length , box.width , box.height, box.weight_capacity, box.number)
+                    new_box = Box(box.name, box.length, box.width , box.height , box.max_weight , box.priority)
                     new_box.add_product(product)
                     boxes.append(new_box)
                     break
-            else:
-                remaining_products.append(product)
-                    
+                
+                else:
+                    remaining_products.append(product)
+                    break
+                
     return boxes, remaining_products
 
 def modifid_boxes(packed_boxes):
