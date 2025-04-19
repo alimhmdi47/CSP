@@ -134,6 +134,14 @@ def modifid_boxes(packed_boxes):
     final_boxes = sorted(boxes, key=lambda x: x.priority)
     return final_boxes
 
+class BinPack():
+    def __init__(self,box:Box,products:List[Product]):
+        self.box = box
+        self.products = products
+    
+    def pack(self):
+        return True
+        
 products = [
     Product("Fridge Magnet", "Magnet", 5, 5, 2, 0.1, [], False),
     Product("Over weight", "Over", 30, 30, 30, 500, [], False),
@@ -216,3 +224,7 @@ for i, box in enumerate(all_boxes):
 print("-- Remaining products:")
 for i, product in enumerate(remaining_product):
     print(f"{i+1}:{product}")
+    
+for box in all_boxes:
+    packer = BinPack(box, box.products)
+    packer.pack()
