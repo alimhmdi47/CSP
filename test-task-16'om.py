@@ -142,7 +142,8 @@ class BinPack():
         self.placement = []
         self.unplaced = []
         self.current_weight = 0
-        
+        self.available_positions = set([(0, 0, 0)])
+
     def rotations(self,product:Product):
       return list(set(permutations(product.dimensions, 3)))
     
@@ -166,16 +167,41 @@ class BinPack():
             if self.intersects(new_placement, placed):
                 return False
         return True
+    
+    def place_item(self, item:Product, pos, dim):
+        self.placement.append((item, pos[0], pos[1], pos[2], dim))
+        self.current_weight += item.weight
+        self.update_available_positions(pos, dim)
+    
+    def update_available_positions(self, pos, dim):
+        x, y, z = pos
+        l, w, h = dim
+        self.available_positions.remove(pos)
+        new_points = [
+            (x + l, y, z),
+            (x, y + w, z),
+            (x, y, z + h),
+            (x + l, y + w, z),
+            (x + l, y, z + h),
+            (x + l, y + w, z + h),
+            (x, y + w, z + h)
+        ]
+        for point in new_points:
+            if point not in self.available_positions:
+                self.available_positions.add(point)
+   
     def pack(self):
         self.unplaced.clear()
         items_sorted = sorted(self.products, key=lambda it: it.volume, reverse=True)
         for item in items_sorted:
             placed = False
-            for rot in self.rotations(item):
-                if self.can_place(0,0,0, rot, item.weight):
-                    self.placement.append((item))
-                    self.current_weight += item.weight
-                    placed = True
+            for pos in sorted(self.available_positions, key=lambda p: (p[2], p[1], p[0])):
+                for rot in self.rotations(item):
+                    if self.can_place(pos[0], pos[1], pos[2], rot, item.weight):
+                        self.place_item(item, pos, rot)
+                        placed = True
+                        break
+                if placed:
                     break
             if not placed:
                 self.unplaced.append(item)
