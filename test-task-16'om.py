@@ -145,6 +145,15 @@ class BinPack():
         
     def rotations(self,product:Product):
       return list(set(permutations(product.dimensions, 3)))
+    
+    def intersects(self, p1, p2) -> bool:
+        x1, y1, z1, d1 = p1[1], p1[2], p1[3], p1[4]
+        x2, y2, z2, d2 = p2[1], p2[2], p2[3], p2[4]
+        return not (
+            x1 + d1[0] <= x2 or x2 + d2[0] <= x1 or
+            y1 + d1[1] <= y2 or y2 + d2[1] <= y1 or
+            z1 + d1[2] <= z2 or z2 + d2[2] <= z1
+        )
     def can_place(self, x, y, z, dim, weight) -> bool:
         if self.current_weight + weight > self.box.max_weight:
             return False
@@ -152,6 +161,10 @@ class BinPack():
             y + dim[1] > self.box.dimensions[1] or
             z + dim[2] > self.box.dimensions[2]):
             return False
+        new_placement = (None, x, y, z, dim)
+        for placed in self.placement:
+            if self.intersects(new_placement, placed):
+                return False
         return True
     def pack(self):
         self.unplaced.clear()
