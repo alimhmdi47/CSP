@@ -160,9 +160,12 @@ def set_constraint(products):
         products_with_constraint.append(product)
     return products_with_constraint
 
+counter = 0
+
 def pack_products(products, box_sizes):
     products = sorted(products, key=lambda x: (x.weight, x.volume), reverse=True)
 
+    global counter
     boxes = []
     remaining_products = []
     
@@ -170,6 +173,7 @@ def pack_products(products, box_sizes):
         placed = False
         
         for box in boxes:
+            counter += 1
             if box.can_fit(product):
                 box.add_product(product)
                 placed = True
@@ -177,6 +181,7 @@ def pack_products(products, box_sizes):
             
         if not placed:
             for box in box_sizes:
+                counter += 1
                 if (
                     box.volume >= product.volume
                     and box.max_weight >= product.weight
@@ -193,9 +198,11 @@ def pack_products(products, box_sizes):
     return boxes, remaining_products
 
 def modifid_boxes(packed_boxes):
+    global counter
     boxes = []
     for box in packed_boxes:
         for box_type in box_sizes[1:]:
+            counter += 1
             if (box.volume - box.remaining_volume) <= box_type.volume and (
                 box.max_weight - box.remaining_weight
             ) <= box_type.max_weight:
@@ -289,9 +296,12 @@ print("-- Remaining products:")
 for i, product in enumerate(remaining_product):
     print(f"{i+1}:{product}")
     
-for box in all_boxes:
-    packer = BinPack(box, box.products)
-    packer.pack()
-    print(f"placed items:  {packer.placement}")
-    print(f"unplaced items:  {[i.name for i in packer.unplaced]}")
+# for box in all_boxes:
+#     packer = BinPack(box, box.products)
+#     packer.pack()
+#     print(f"placed items:  {packer.placement}")
+#     print(f"unplaced items:  {[i.name for i in packer.unplaced]}")
+
+print("all state", counter)
+    
 
