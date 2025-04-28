@@ -171,7 +171,35 @@ def categorize(products):
             products_category_data[product.category] = 1
     return products_category_data
 
+def optimize_states(categorized , conditions):
+    for key,value in conditions.items():
+        if isinstance(value,str):
+            conditions[key] = value
+            
+    def can_add(subset,new_item):
+        for item in subset:
+            if (item in conditions and new_item in conditions[item]) or (new_item in conditions and item in conditions[new_item]):
+                return False
+        return True
 
+    items = set(categorized.keys())
+    all_subset = []
+    total = 0
+    
+    while items:
+        subset = [] 
+        first_item = max(items ,key= lambda x: categorized[x])
+        subset.append(first_item)
+        items.remove(first_item)
+        for item in list(sorted(items, key= lambda x: categorized[x], reverse=True)):
+            if can_add(subset, item):       
+                subset.append(item)
+                items.remove(item)
+        all_subset.append(subset)
+        total += sum(categorized[x] for x in subset)
+        
+    return all_subset, total          
+       
 def pack_products(products, box_sizes):
     products = sorted(products, key=lambda x: (x.weight, x.volume), reverse=True)
 
@@ -294,6 +322,7 @@ constraint = {
 
 products = set_constraint(products)
 categorized = categorize(products)
+subsets,total = optimize_states(categorized,constraint)
 packed_boxes, remaining_product = pack_products(products, box_sizes)
 all_boxes = modifid_boxes(packed_boxes)
 
