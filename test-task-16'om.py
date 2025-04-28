@@ -289,22 +289,6 @@ def pack_products(products, box_sizes):
                 
     return boxes, remaining_products
 
-def modifid_boxes(packed_boxes):
-    global counter
-    boxes = []
-    for box in packed_boxes:
-        for box_type in box_sizes[1:]:
-         
-            if (box.volume - box.remaining_volume) <= box_type.volume and (
-                box.max_weight - box.remaining_weight
-            ) <= box_type.max_weight:
-
-                box.name = box_type.name
-        boxes.append(box)
-
-    final_boxes = sorted(boxes, key=lambda x: x.priority)
-    return final_boxes
-
 products = [
     Product("Crystal Bowl", "Glassware", 25, 25, 20, 1.8, [], True),
     Product("Fridge Magnet", "Magnet", 5, 5, 2, 0.1, [], False),
