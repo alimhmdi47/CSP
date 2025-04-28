@@ -1,6 +1,7 @@
 from itertools import permutations
+from math import prod
 from random import choice
-from typing import List
+from typing import Dict, List, Tuple
 
 class Product:
     def __init__(self, name: str, category: str, length: int, width: int, height: int, weight: float, incompatible_with: List[str], is_breakable: bool):
@@ -160,7 +161,16 @@ def set_constraint(products):
         products_with_constraint.append(product)
     return products_with_constraint
 
-counter = 0
+def categorize(products):
+    products = sorted(products , key = lambda x: x.category)
+    products_category_data = {}
+    for product in products:
+        if product.category in products_category_data:
+            products_category_data[product.category] += 1
+        else:
+            products_category_data[product.category] = 1
+    return products_category_data
+
 
 def pack_products(products, box_sizes):
     products = sorted(products, key=lambda x: (x.weight, x.volume), reverse=True)
@@ -173,7 +183,7 @@ def pack_products(products, box_sizes):
         placed = False
         
         for box in boxes:
-            counter += 1
+   
             if box.can_fit(product):
                 box.add_product(product)
                 placed = True
@@ -181,7 +191,7 @@ def pack_products(products, box_sizes):
             
         if not placed:
             for box in box_sizes:
-                counter += 1
+             
                 if (
                     box.volume >= product.volume
                     and box.max_weight >= product.weight
@@ -202,7 +212,7 @@ def modifid_boxes(packed_boxes):
     boxes = []
     for box in packed_boxes:
         for box_type in box_sizes[1:]:
-            counter += 1
+         
             if (box.volume - box.remaining_volume) <= box_type.volume and (
                 box.max_weight - box.remaining_weight
             ) <= box_type.max_weight:
@@ -214,6 +224,7 @@ def modifid_boxes(packed_boxes):
     return final_boxes
 
 products = [
+    Product("Crystal Bowl", "Glassware", 25, 25, 20, 1.8, [], True),
     Product("Fridge Magnet", "Magnet", 5, 5, 2, 0.1, [], False),
     Product("Over weight", "Over", 30, 30, 30, 500, [], False),
     Product("Bluetooth Speaker", "Electronics", 20, 15, 2, 1.0, [], True),
@@ -232,10 +243,9 @@ products = [
     Product("Magnetic Toy", "Magnet", 15, 10, 5, 0.5, [], False),
     Product("Laptop", "Electronics", 30, 20, 2, 2.5, [], True),
     Product("Bluetooth Speaker", "Electronics", 20, 15, 2, 1.0, [], True),
-    Product("Crystal Bowl", "Glassware", 25, 25, 20, 1.8, [], True),
     Product("Laundry Detergent", "Detergent", 30, 20, 20, 2.0, [], False),
     Product("Crystal Bowl", "Glassware", 25, 25, 20, 1.8, [], True),
-    Product("All incompatible Not Breakable", "Incompatible", 20, 20, 20, 3.0, ["Food", "Electronics", "Magnet", "Detergent"], False),
+    Product("All incompatible Not Breakable", "Incompatible", 20, 20, 20, 3.0, [], False),
     Product("Chocolate", "Food", 15, 10, 2, 0.2, [], False),
     Product("E-Reader", "Electronics", 20, 12, 1, 0.5, [], True),
     Product("Fridge Magnet", "Magnet", 5, 5, 2, 0.1, [], False),
@@ -254,12 +264,12 @@ products = [
     Product("Digital Camera", "Electronics", 15, 10, 3, 0.9, [], True),
     Product("Tomato Sauce", "Food", 25, 10, 10, 0.9, [], True),
     Product("Over size", "Over", 800000, 800, 800, 5.0, [], False),
-    Product("All incompatible Breakable", "Incompatible", 20, 20, 20, 3.0, ["Food", "Electronics", "Magnet", "Detergent"], True),
-    Product("All incompatible Breakable", "Incompatible", 20, 20, 20, 3.0, ["Food", "Electronics", "Magnet", "Detergent"], True),
+    Product("All incompatible Breakable", "Incompatible", 20, 20, 20, 3.0, [], True),
+    Product("All incompatible Breakable", "Incompatible", 20, 20, 20, 3.0, [], True),
     Product("Magnet Strip", "Magnet", 20, 5, 2, 0.3, [], False),
     Product("Glass Vase", "Glassware", 30, 20, 30, 2.5, [], True),
     Product("Mirror", "Glassware", 50, 40, 2, 3.0, [], True),
-    Product("All incompatible Breakable", "Incompatible", 20, 20, 20, 3.0, ["Food", "Electronics", "Magnet", "Detergent"], True),
+    Product("All incompatible Breakable", "Incompatible", 20, 20, 20, 3.0, [], True),
     Product("Magnetic Hooks", "Magnet", 15, 10, 3, 0.4, [], False),
     Product("Honey", "Food", 25, 10, 10, 1.2, [], True),
     Product("Smartwatch", "Electronics", 10, 10, 2, 0.3, [], True),
@@ -279,10 +289,11 @@ constraint = {
     "Detergent" : ["Food"],
     "Electronics" : ["Magnet"],
     "Magnet" : ["Electronics"],
-    "Glassware" : [],
+    "Incompatible" : ["Food", "Electronics", "Magnet", "Detergent"]
 }
 
 products = set_constraint(products)
+categorized = categorize(products)
 packed_boxes, remaining_product = pack_products(products, box_sizes)
 all_boxes = modifid_boxes(packed_boxes)
 
@@ -296,12 +307,8 @@ print("-- Remaining products:")
 for i, product in enumerate(remaining_product):
     print(f"{i+1}:{product}")
     
-# for box in all_boxes:
-#     packer = BinPack(box, box.products)
-#     packer.pack()
-#     print(f"placed items:  {packer.placement}")
-#     print(f"unplaced items:  {[i.name for i in packer.unplaced]}")
-
-print("all state", counter)
-    
-
+for box in all_boxes:
+    packer = BinPack(box, box.products)
+    packer.pack()
+    print(f"placed items:  {packer.placement}")
+    print(f"unplaced items:  {[i.name for i in packer.unplaced]}")
