@@ -164,12 +164,23 @@ def set_constraint(products):
 def categorize(products):
     products = sorted(products , key = lambda x: x.category)
     products_category_data = {}
+    breakable = {}
+    non_breakable = {}
+    
     for product in products:
         if product.category in products_category_data:
             products_category_data[product.category] += 1
         else:
             products_category_data[product.category] = 1
-    return products_category_data
+            breakable[product.category] = 0
+            non_breakable[product.category] = 0
+            
+        if product.is_breakable:
+            breakable[product.category] += 1
+        else:
+            non_breakable[product.category] += 1
+      
+    return products_category_data, breakable, non_breakable
 
 def optimize_states(categorized , conditions):
     for key,value in conditions.items():
@@ -317,12 +328,14 @@ constraint = {
     "Detergent" : ["Food"],
     "Electronics" : ["Magnet"],
     "Magnet" : ["Electronics"],
-    "Incompatible" : ["Food", "Electronics", "Magnet", "Detergent"]
+    "Incompatible" : ["Food", "Electronics", "Magnet", "Detergent", "Glassware"]
 }
 
 products = set_constraint(products)
-categorized = categorize(products)
+categorized,breakable_categories,non_breakable_categories = categorize(products)
 subsets,total = optimize_states(categorized,constraint)
+breakable_subsets, breakable_total = optimize_states(breakable_categories, constraint)
+non_breakable_subsets, non_breakable_total = optimize_states(non_breakable_categories, constraint)
 packed_boxes, remaining_product = pack_products(products, box_sizes)
 all_boxes = modifid_boxes(packed_boxes)
 
@@ -341,3 +354,4 @@ for box in all_boxes:
     packer.pack()
     print(f"placed items:  {packer.placement}")
     print(f"unplaced items:  {[i.name for i in packer.unplaced]}")
+
