@@ -1,5 +1,6 @@
 from itertools import permutations
 from math import prod
+from os import remove
 from random import choice
 from typing import Dict, List, Tuple
 
@@ -166,6 +167,8 @@ def categorize(products):
     products_category_data = {}
     breakable = {}
     non_breakable = {}
+    breakable_products = []
+    non_breakable_products = []
     
     for product in products:
         if product.category in products_category_data:
@@ -177,10 +180,12 @@ def categorize(products):
             
         if product.is_breakable:
             breakable[product.category] += 1
+            breakable_products.append(product)
         else:
             non_breakable[product.category] += 1
-      
-    return products_category_data, breakable, non_breakable
+            non_breakable_products.append(product)
+
+    return products_category_data, breakable, non_breakable, breakable_products, non_breakable_products
 
 def optimize_states(categorized , conditions):
     for key,value in conditions.items():
@@ -210,7 +215,45 @@ def optimize_states(categorized , conditions):
         total += sum(categorized[x] for x in subset)
         
     return all_subset, total          
-       
+
+def estimate_boxes(products , states, box_sizes):
+    biggest_box = max(box_sizes, key= lambda x: (x.volume, x.max_weight))
+    smallest_box = min(box_sizes, key= lambda x: (x.volume, x.max_weight))
+    estimated_boxes = {}
+    while states:   
+        state = tuple(states[0])
+        states.remove(states[0])
+        estimated_boxes[state] = []
+        filtered_products = [p for p in products if p.category in state]
+        total_volume = 0
+        total_weight = 0
+        for item in filtered_products:
+            if (item.volume > biggest_box.volume or
+                item.weight > biggest_box.max_weight or
+                item.length > biggest_box.length or
+                item.width > biggest_box.width or
+                item.height > biggest_box.height): 
+                    filtered_products.remove(item)
+                    continue
+            total_volume += item.volume
+            total_weight += item.weight
+        while total_volume > smallest_box.volume and total_weight > smallest_box.max_weight:
+            for box in box_sizes:
+                vcount = total_volume // box.volume 
+                wcount = total_weight // box.max_weight 
+                if (vcount == 0 and wcount > 0):
+                    count = wcount
+                elif(vcount > 0 and wcount == 0):
+                    count = vcount
+                elif(vcount > 0 and wcount > 0):
+                    count = min(vcount , wcount)
+                else: 
+                    continue
+                total_volume -= (count * box.volume)
+                total_weight -= (count * box.max_weight)
+                estimated_boxes[state] += ((box.name , count))
+    return estimated_boxes  
+        
 def pack_products(products, box_sizes):
     products = sorted(products, key=lambda x: (x.weight, x.volume), reverse=True)
 
@@ -317,10 +360,10 @@ products = [
 ]
 
 box_sizes = [
-    Box("XLarge Box", 700, 700, 700, 15, 1),
-    Box("Large Box", 500, 500, 500, 10, 2),
-    Box("Medium Box", 300, 300, 300, 5, 3),
-    Box("Small Box", 200, 200, 200, 2, 4),
+    Box("XLarge Box", 70, 70, 70, 15, 1),
+    Box("Large Box", 50, 50, 50, 10, 2),
+    Box("Medium Box", 30, 30, 30, 5, 3),
+    Box("Small Box", 20, 20, 20, 2, 4),
 ]
 
 constraint = {
@@ -332,10 +375,21 @@ constraint = {
 }
 
 products = set_constraint(products)
-categorized,breakable_categories,non_breakable_categories = categorize(products)
+
+(categorized,
+ breakable_categories,
+ non_breakable_categories,
+ breakable_products,
+ non_breakable_products
+) = categorize(products)
+
 subsets,total = optimize_states(categorized,constraint)
 breakable_subsets, breakable_total = optimize_states(breakable_categories, constraint)
 non_breakable_subsets, non_breakable_total = optimize_states(non_breakable_categories, constraint)
+
+breakable_boxes_estimated = estimate_boxes(breakable_products,breakable_subsets,box_sizes)
+non_breakable_boxes_estimated = estimate_boxes(non_breakable_products,non_breakable_subsets,box_sizes)
+
 packed_boxes, remaining_product = pack_products(products, box_sizes)
 all_boxes = modifid_boxes(packed_boxes)
 
@@ -349,9 +403,15 @@ print("-- Remaining products:")
 for i, product in enumerate(remaining_product):
     print(f"{i+1}:{product}")
     
-for box in all_boxes:
-    packer = BinPack(box, box.products)
-    packer.pack()
-    print(f"placed items:  {packer.placement}")
-    print(f"unplaced items:  {[i.name for i in packer.unplaced]}")
+# for box in all_boxes:
+#     packer = BinPack(box, box.products)
+#     packer.pack()
+#     print(f"placed items:  {packer.placement}")
+#     print(f"unplaced items:  {[i.name for i in packer.unplaced]}")
 
+# print(subsets, total)
+# print(breakable_subsets, breakable_total)
+# print(non_breakable_subsets, non_breakable_total)
+
+print(breakable_boxes_estimated)
+print(non_breakable_boxes_estimated)
