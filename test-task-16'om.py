@@ -1,8 +1,6 @@
 from itertools import permutations
-from math import prod
-from os import remove
 from random import choice
-from typing import Dict, List, Tuple
+from typing import List
 
 class Product:
     def __init__(self, name: str, category: str, length: int, width: int, height: int, weight: float, incompatible_with: List[str], is_breakable: bool):
@@ -227,17 +225,17 @@ def estimate_boxes(products , states, box_sizes):
         filtered_products = [p for p in products if p.category in state]
         total_volume = 0
         total_weight = 0
-        for item in filtered_products:
+        for item in filtered_products.copy():
             if (item.volume > biggest_box.volume or
                 item.weight > biggest_box.max_weight or
                 item.length > biggest_box.length or
                 item.width > biggest_box.width or
                 item.height > biggest_box.height): 
-                    filtered_products.remove(item)
-                    continue
+                filtered_products.remove(item)
+                continue
             total_volume += item.volume
             total_weight += item.weight
-        while total_volume > smallest_box.volume and total_weight > smallest_box.max_weight:
+        while total_volume > 0 and total_weight > 0:
             for box in box_sizes:
                 vcount = total_volume // box.volume 
                 wcount = total_weight // box.max_weight 
@@ -247,11 +245,13 @@ def estimate_boxes(products , states, box_sizes):
                     count = vcount
                 elif(vcount > 0 and wcount > 0):
                     count = min(vcount , wcount)
-                else: 
+                elif(box == smallest_box and total_volume <= smallest_box.volume and total_weight <= smallest_box.max_weight):
+                    count = 1
+                else:
                     continue
                 total_volume -= (count * box.volume)
                 total_weight -= (count * box.max_weight)
-                estimated_boxes[state] += ((box.name , count))
+                estimated_boxes[state] += ((box.name , count))        
     return estimated_boxes  
         
 def pack_products(products, box_sizes):
@@ -371,11 +371,10 @@ subsets,total = optimize_states(categorized,constraint)
 breakable_subsets, breakable_total = optimize_states(breakable_categories, constraint)
 non_breakable_subsets, non_breakable_total = optimize_states(non_breakable_categories, constraint)
 
-breakable_boxes_estimated = estimate_boxes(breakable_products,breakable_subsets,box_sizes)
 non_breakable_boxes_estimated = estimate_boxes(non_breakable_products,non_breakable_subsets,box_sizes)
+breakable_boxes_estimated = estimate_boxes(breakable_products,breakable_subsets,box_sizes)
 
-packed_boxes, remaining_product = pack_products(products, box_sizes)
-all_boxes = modifid_boxes(packed_boxes)
+all_boxes, remaining_product = pack_products(products, box_sizes)
 
 print("#########")    
 print("-- Boxes:")
