@@ -165,8 +165,8 @@ def categorize(products):
     products_category_data = {}
     breakable = {}
     non_breakable = {}
-    breakable_products = []
-    non_breakable_products = []
+    breakable_products = {}
+    non_breakable_products = {}
     
     for product in products:
         if product.category in products_category_data:
@@ -175,13 +175,15 @@ def categorize(products):
             products_category_data[product.category] = 1
             breakable[product.category] = 0
             non_breakable[product.category] = 0
+            breakable_products[product.category] = []
+            non_breakable_products[product.category] = []
             
         if product.is_breakable:
             breakable[product.category] += 1
-            breakable_products.append(product)
+            breakable_products[product.category].append(product)
         else:
             non_breakable[product.category] += 1
-            non_breakable_products.append(product)
+            non_breakable_products[product.category].append(product)
 
     return products_category_data, breakable, non_breakable, breakable_products, non_breakable_products
 
@@ -222,7 +224,7 @@ def estimate_boxes(products , states, box_sizes):
         state = tuple(states[0])
         states.remove(states[0])
         estimated_boxes[state] = []
-        filtered_products = [p for p in products if p.category in state]
+        filtered_products = [value for category, values in products.items() if category in state for value in values]
         total_volume = 0
         total_weight = 0
         for item in filtered_products.copy():
@@ -252,7 +254,7 @@ def estimate_boxes(products , states, box_sizes):
                 total_volume -= (count * box.volume)
                 total_weight -= (count * box.max_weight)
                 estimated_boxes[state] += ((box.name , count))        
-    return estimated_boxes  
+    return estimated_boxes
         
 def pack_products(products, box_sizes):
     products = sorted(products, key=lambda x: (x.weight, x.volume), reverse=True)
@@ -371,8 +373,8 @@ subsets,total = optimize_states(categorized,constraint)
 breakable_subsets, breakable_total = optimize_states(breakable_categories, constraint)
 non_breakable_subsets, non_breakable_total = optimize_states(non_breakable_categories, constraint)
 
-non_breakable_boxes_estimated = estimate_boxes(non_breakable_products,non_breakable_subsets,box_sizes)
 breakable_boxes_estimated = estimate_boxes(breakable_products,breakable_subsets,box_sizes)
+non_breakable_boxes_estimated = estimate_boxes(non_breakable_products,non_breakable_subsets,box_sizes)
 
 all_boxes, remaining_product = pack_products(products, box_sizes)
 
