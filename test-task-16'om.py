@@ -219,11 +219,11 @@ def optimize_states(categorized , conditions):
 def estimate_boxes(products , states, box_sizes):
     biggest_box = max(box_sizes, key= lambda x: (x.volume, x.max_weight))
     smallest_box = min(box_sizes, key= lambda x: (x.volume, x.max_weight))
-    estimated_boxes = {}
+    estimate_boxes_data = {}
+    
     while states:   
         state = tuple(states[0])
         states.remove(states[0])
-        estimated_boxes[state] = []
         filtered_products = [value for category, values in products.items() if category in state for value in values]
         total_volume = 0
         total_weight = 0
@@ -237,6 +237,8 @@ def estimate_boxes(products , states, box_sizes):
                 continue
             total_volume += item.volume
             total_weight += item.weight
+        estimate_boxes_data[state] = [filtered_products]
+        boxes = []
         while total_volume > 0 and total_weight > 0:
             for box in box_sizes:
                 vcount = total_volume // box.volume 
@@ -253,8 +255,9 @@ def estimate_boxes(products , states, box_sizes):
                     continue
                 total_volume -= (count * box.volume)
                 total_weight -= (count * box.max_weight)
-                estimated_boxes[state] += ((box.name , count))        
-    return estimated_boxes
+                boxes.append((box.name , count))        
+        estimate_boxes_data[state].append(boxes)
+    return estimate_boxes_data 
         
 def pack_products(products, box_sizes):
     products = sorted(products, key=lambda x: (x.weight, x.volume), reverse=True)
