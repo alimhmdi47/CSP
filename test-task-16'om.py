@@ -375,29 +375,4 @@ breakable_boxes_estimated = estimate_boxes(breakable_products,breakable_subsets,
 non_breakable_boxes_estimated = estimate_boxes(non_breakable_products,non_breakable_subsets,box_sizes)
 
 breakable_boxes = pack_products(breakable_boxes_estimated,box_sizes)
-# non_breakable_boxes = pack_products(non_breakable_boxes_estimated,box_sizes)
-
-# all_boxes, remaining_product = pack_products(products, box_sizes)
-
-# print("#########")    
-# print("-- Boxes:")
-
-# for i, box in enumerate(all_boxes):
-#     print(f"Box {i+1}: {box}")
-
-# print("-- Remaining products:")
-# for i, product in enumerate(remaining_product):
-#     print(f"{i+1}:{product}")
-    
-# for box in all_boxes:
-#     packer = BinPack(box, box.products)
-#     packer.pack()
-#     print(f"placed items:  {packer.placement}")
-#     print(f"unplaced items:  {[i.name for i in packer.unplaced]}")
-
-# print(subsets, total)
-# print(breakable_subsets, breakable_total)
-# print(non_breakable_subsets, non_breakable_total)
-
-# print(breakable_boxes_estimated)
-# print(non_breakable_boxes_estimated)
+non_breakable_boxes = pack_products(non_breakable_boxes_estimated,box_sizes)
