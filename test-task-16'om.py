@@ -19,8 +19,8 @@ class Product:
     def __repr__(self) -> str:
         return (
             f"Product name: {self.name},"
-            # f"Category: {self.category},"
-            # f"Volume: {self.volume}, Weight: {self.weight}"
+            f"Category: {self.category},"
+            f"Volume: {self.volume}, Weight: {self.weight}"
         )
 
 class Box:
@@ -275,8 +275,7 @@ def estimate_boxes(products , states, box_sizes):
                             break
                             
     return estimated_boxes
-
-                
+      
 def pack_products(estimated_boxes,box_sizes):
     for boxes in estimated_boxes.values():
         for (box, products) in boxes:
@@ -284,10 +283,7 @@ def pack_products(estimated_boxes,box_sizes):
             packer.pack()
             print(f"placed items:  {packer.placement}")
             print(f"unplaced items:  {[i.name for i in packer.unplaced]}")
-                
-            
-    
-        
+                           
 products = [
     Product("Crystal Bowl", "Glassware", 25, 25, 20, 1.8, [], True),
     Product("Fridge Magnet", "Magnet", 5, 5, 2, 0.1, [], False),
