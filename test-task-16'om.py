@@ -38,41 +38,7 @@ class Box:
         self.contains_categories = set()
         self.contains_non_breakable = False
         self.priority = priority
-
-    def can_fit(self, product):
-        if (
-            self.remaining_volume < product.volume
-            or self.remaining_weight < product.weight
-        ):
-            return False
-
-        if product.is_breakable and self.contains_non_breakable:
-            return False
-
-        if not product.is_breakable and any(
-            box_products.is_breakable for box_products in self.products
-        ):
-            return False
-
-        for existing_product in self.products:
-            if (
-                existing_product.category in product.incompatible_with
-                or product.category in existing_product.incompatible_with
-            ):
-                return False
-            
-        return True
-
-    def add_product(self, product):
-        self.products.append(product)
-        self.contains_categories.add(product.category) 
         
-        self.remaining_volume -= product.volume
-        self.remaining_weight -= product.weight
-        
-        if not product.is_breakable:
-            self.contains_non_breakable = True
-
     def __repr__(self):
         product_names = [product.name for product in self.products]
         return (
