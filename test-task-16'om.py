@@ -18,8 +18,9 @@ class Product:
 
     def __repr__(self) -> str:
         return (
-            f"Product name: {self.name}, Category: {self.category},"
-            f"Volume: {self.volume}, Weight: {self.weight}"
+            f"Product name: {self.name},"
+            # f"Category: {self.category},"
+            # f"Volume: {self.volume}, Weight: {self.weight}"
         )
 
 class Box:
@@ -217,68 +218,76 @@ def optimize_states(categorized , conditions):
     return all_subset, total          
 
 def estimate_boxes(products , states, box_sizes):
-    biggest_box = max(box_sizes, key= lambda x: (x.volume, x.max_weight))
-    smallest_box = min(box_sizes, key= lambda x: (x.volume, x.max_weight))
-    estimate_boxes_data = {}
+    biggest_box = box_sizes[0]
+    targets = [(box.volume , box.max_weight) for box in box_sizes]
+    estimated_boxes = {}
     
-    while states:   
-        state = tuple(states[0])
-        states.remove(states[0])
+    while states: 
+        state = tuple(states.pop(0))
+        estimated_boxes[state] = {}
         filtered_products = [value for category, values in products.items() if category in state for value in values]
-        total_volume = 0
-        total_weight = 0
-        for item in filtered_products.copy():
-            if (item.volume > biggest_box.volume or
-                item.weight > biggest_box.max_weight or
-                item.length > biggest_box.length or
-                item.width > biggest_box.width or
-                item.height > biggest_box.height): 
-                filtered_products.remove(item)
-                continue
-            total_volume += item.volume
-            total_weight += item.weight
-        estimate_boxes_data[state] = [filtered_products]
-        boxes = []
-        while total_volume > 0 and total_weight > 0:
-            for box in box_sizes:
-                vcount = total_volume // box.volume 
-                wcount = total_weight // box.max_weight 
-                if (vcount == 0 and wcount > 0):
-                    count = wcount
-                elif(vcount > 0 and wcount == 0):
-                    count = vcount
-                elif(vcount > 0 and wcount > 0):
-                    count = min(vcount , wcount)
-                elif(box == smallest_box and total_volume <= smallest_box.volume and total_weight <= smallest_box.max_weight):
-                    count = 1
-                else:
-                    continue
-                total_volume -= (count * box.volume)
-                total_weight -= (count * box.max_weight)
-                boxes.append((box.name , count))        
-        estimate_boxes_data[state].append(boxes)
-    return estimate_boxes_data 
+        filtered_products = sorted(filtered_products , key= lambda x: (x.weight , x.volume), reverse=True)
         
-def pack_products(products, box_sizes):
-    products = sorted(products, key=lambda x: (x.weight, x.volume), reverse=True)
+        for item in filtered_products.copy():
+                if (item.volume > biggest_box.volume or
+                    item.weight > biggest_box.max_weight or
+                    item.length > biggest_box.length or
+                    item.width > biggest_box.width or
+                    item.height > biggest_box.height): 
+                    filtered_products.remove(item)
+                    continue
+        
+        boxes = []
+                
+        while filtered_products:
+            box = []
+            temp_volume = 0
+            temp_weight = 0
+            while filtered_products:
+                def score(c):
+                    best_s = sorted(
+                        targets,
+                        key=lambda t: (t[0] - (temp_volume + c.volume)) + 3 * (t[1] - (temp_weight + c.weight))
+                    )
+                    best_t = max(best_s)
+                    tx, ty = best_t
+                    return abs(tx - (temp_volume + c.volume) ) + 3 * abs(ty - (temp_weight + c.weight) )
 
-    global counter
+                can = sorted(filtered_products, key = score)
+                best = can[0]
+               
+                if (best.volume + temp_volume) > biggest_box.volume or (best.weight + temp_weight) > biggest_box.max_weight:
+                    estimated_boxes[state][biggest_box] = box
+                    box = []
+                    temp_volume =0 
+                    temp_weight = 0    
+
+                filtered_products.remove(best)
+                can.remove(best)
+                box.append(best)
+                temp_volume += best.volume
+                temp_weight += best.weight
+                
+                if not filtered_products: 
+                    for b in box_sizes:
+                        if (b.volume - temp_volume) > 0 and (b.max_weight - temp_weight) > 0:
+                            estimated_boxes[state][b.name] = box
+    return estimated_boxes
+
+                
+def pack_products(products, states ,box_sizes):
     boxes = []
     remaining_products = []
     
     for product in products:
         placed = False
-        
         for box in boxes:
-   
             if box.can_fit(product):
                 box.add_product(product)
                 placed = True
                 break
-            
         if not placed:
             for box in box_sizes:
-             
                 if (
                     box.volume >= product.volume
                     and box.max_weight >= product.weight
@@ -287,13 +296,11 @@ def pack_products(products, box_sizes):
                     new_box.add_product(product)
                     boxes.append(new_box)
                     break
-                
                 else:
                     remaining_products.append(product)
-                    break
-                
+                    break   
     return boxes, remaining_products
-
+        
 products = [
     Product("Crystal Bowl", "Glassware", 25, 25, 20, 1.8, [], True),
     Product("Fridge Magnet", "Magnet", 5, 5, 2, 0.1, [], False),
@@ -376,20 +383,27 @@ subsets,total = optimize_states(categorized,constraint)
 breakable_subsets, breakable_total = optimize_states(breakable_categories, constraint)
 non_breakable_subsets, non_breakable_total = optimize_states(non_breakable_categories, constraint)
 
+
 breakable_boxes_estimated = estimate_boxes(breakable_products,breakable_subsets,box_sizes)
 non_breakable_boxes_estimated = estimate_boxes(non_breakable_products,non_breakable_subsets,box_sizes)
 
-all_boxes, remaining_product = pack_products(products, box_sizes)
+breakable_boxes = pack_products(breakable_products,breakable_subsets,box_sizes)
+# for key, value in breakable_boxes_estimated.items():
+#     es_products , es_boxes = value[0] , value[1]
+#     pack_products(es_products, es_boxes)
+    
 
-print("#########")    
-print("-- Boxes:")
+# all_boxes, remaining_product = pack_products(products, box_sizes)
 
-for i, box in enumerate(all_boxes):
-    print(f"Box {i+1}: {box}")
+# print("#########")    
+# print("-- Boxes:")
 
-print("-- Remaining products:")
-for i, product in enumerate(remaining_product):
-    print(f"{i+1}:{product}")
+# for i, box in enumerate(all_boxes):
+#     print(f"Box {i+1}: {box}")
+
+# print("-- Remaining products:")
+# for i, product in enumerate(remaining_product):
+#     print(f"{i+1}:{product}")
     
 # for box in all_boxes:
 #     packer = BinPack(box, box.products)
@@ -401,5 +415,5 @@ for i, product in enumerate(remaining_product):
 # print(breakable_subsets, breakable_total)
 # print(non_breakable_subsets, non_breakable_total)
 
-print(breakable_boxes_estimated)
-print(non_breakable_boxes_estimated)
+# print(breakable_boxes_estimated)
+# print(non_breakable_boxes_estimated)
