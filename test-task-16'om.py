@@ -224,7 +224,7 @@ def estimate_boxes(products , states, box_sizes):
     
     while states: 
         state = tuple(states.pop(0))
-        estimated_boxes[state] = {}
+        estimated_boxes[state] = []
         filtered_products = [value for category, values in products.items() if category in state for value in values]
         filtered_products = sorted(filtered_products , key= lambda x: (x.weight , x.volume), reverse=True)
         
@@ -257,7 +257,7 @@ def estimate_boxes(products , states, box_sizes):
                 best = can[0]
                
                 if (best.volume + temp_volume) > biggest_box.volume or (best.weight + temp_weight) > biggest_box.max_weight:
-                    estimated_boxes[state][biggest_box] = box
+                    estimated_boxes[state].append((biggest_box , box))
                     box = []
                     temp_volume =0 
                     temp_weight = 0    
@@ -269,37 +269,24 @@ def estimate_boxes(products , states, box_sizes):
                 temp_weight += best.weight
                 
                 if not filtered_products: 
-                    for b in box_sizes:
+                    for b in box_sizes[-1:0:-1]:
                         if (b.volume - temp_volume) > 0 and (b.max_weight - temp_weight) > 0:
-                            estimated_boxes[state][b.name] = box
+                            estimated_boxes[state].append((b,box))
+                            break
+                            
     return estimated_boxes
 
                 
-def pack_products(products, states ,box_sizes):
-    boxes = []
-    remaining_products = []
+def pack_products(estimated_boxes,box_sizes):
+    for boxes in estimated_boxes.values():
+        for (box, products) in boxes:
+            packer = BinPack(box, products)
+            packer.pack()
+            print(f"placed items:  {packer.placement}")
+            print(f"unplaced items:  {[i.name for i in packer.unplaced]}")
+                
+            
     
-    for product in products:
-        placed = False
-        for box in boxes:
-            if box.can_fit(product):
-                box.add_product(product)
-                placed = True
-                break
-        if not placed:
-            for box in box_sizes:
-                if (
-                    box.volume >= product.volume
-                    and box.max_weight >= product.weight
-                ):
-                    new_box = Box(box.name, box.length, box.width , box.height , box.max_weight , box.priority)
-                    new_box.add_product(product)
-                    boxes.append(new_box)
-                    break
-                else:
-                    remaining_products.append(product)
-                    break   
-    return boxes, remaining_products
         
 products = [
     Product("Crystal Bowl", "Glassware", 25, 25, 20, 1.8, [], True),
@@ -387,11 +374,8 @@ non_breakable_subsets, non_breakable_total = optimize_states(non_breakable_categ
 breakable_boxes_estimated = estimate_boxes(breakable_products,breakable_subsets,box_sizes)
 non_breakable_boxes_estimated = estimate_boxes(non_breakable_products,non_breakable_subsets,box_sizes)
 
-breakable_boxes = pack_products(breakable_products,breakable_subsets,box_sizes)
-# for key, value in breakable_boxes_estimated.items():
-#     es_products , es_boxes = value[0] , value[1]
-#     pack_products(es_products, es_boxes)
-    
+breakable_boxes = pack_products(breakable_boxes_estimated,box_sizes)
+# non_breakable_boxes = pack_products(non_breakable_boxes_estimated,box_sizes)
 
 # all_boxes, remaining_product = pack_products(products, box_sizes)
 
